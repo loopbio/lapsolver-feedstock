@@ -1,0 +1,57 @@
+{% set name = 'lapsolver' %}
+{% set version = '1.0.2' %}
+{% set sha256 = 'eca55ca0a9f936c634a6379ff3d9926830d26316686bf39479903b416694d085' %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  fn: {{ name }}-{{ version }}.tar.gz
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  sha256: {{ sha256 }}
+  patches:
+    - py2-compat.patch  # [py2k]
+
+build:
+  number: 0
+  skip: True  # [not linux]
+  script: python -m pip install --no-deps --ignore-installed . --verbose
+
+requirements:
+  build:
+    - {{ compiler('cxx') }}
+    - cmake
+  host:
+    - python
+    - pip
+    - pytest-runner  # we should change setup.py to make this optional
+  run:
+    - python
+
+test:
+  source_files:
+    - lapsolver/tests
+    - lapsolver/data
+  requires:
+    - numpy
+    - pytest
+  imports:
+    - lapsolver
+  commands:
+    - pytest lapsolver/tests/*
+    - conda inspect linkages {{ name|lower }}  # [unix]
+    - conda inspect objects {{ name|lower }}   # [osx]
+
+about:
+  home: https://github.com/cheind/py-lapsolver
+  license: MIT
+  license_file: LICENSE
+  summary: 'Fast linear assignment problem (LAP) solvers for Python based on c-extensions'
+  description: |
+    py-lapsolver implements a linear sum assignment problem solver for dense matrices based
+    on shortest path augmentation. In practice, it solves 5000x5000 problems in around 3 seconds.
+
+extra:
+  recipe-maintainers:
+    - sdvillal
